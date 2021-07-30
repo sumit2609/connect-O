@@ -4,7 +4,6 @@ const bcrypt = require("bcrypt");
 
 //REGISTER
 router.post("/register", async (req,res)=>{
-
     try{
         //generate hashed password
         const salt = await bcrypt.genSalt(10);
@@ -37,10 +36,7 @@ router.post("/login", async (req,res)=>{
         res.status(200).json(user);
     }catch(err){
         res.status(500).json(err);
-    }
-    
+    } 
 });
-
-
 
 module.exports = router;
