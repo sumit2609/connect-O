@@ -2,7 +2,7 @@ const router = require("express").Router();
 const User = require("../models/User");
 const bcrypt = require("bcrypt")
 
-//Upadate user
+//Update user
 router.put("/:id", async (req,res)=>{
     if(req.body.userId == req.params.id || req.body.isAdmin){
         console.log("hi1")
@@ -43,15 +43,47 @@ router.delete("/:id", async (req,res)=>{
 });
 
 //get a user
-router.get("/:id", async (req,res)=>{
+// lh://8800/users?username=john
+
+router.get("/", async (req,res)=>{
+    const userId = req.query.userId;
+    const username = req.query.username;
     try{
-        const user = await User.findById(req.params.id);
+        const user = userId 
+        ? await User.findById(userId) 
+        : await User.findOne({username:  username});
+         
+        console.log(user);
         const {password,updatedAt, ...other} = user._doc;
         res.status(200).json(other)
     }catch(err){
         return res.status(500).json(err);
     }
 });
+
+//get friends
+router.get("/friends/:userId", async (req,res)=>{
+    try{
+        const user = await User.findById(req.params.userId);
+        console.log(user.following)
+        const friends = await Promise.all(
+            user.following.map((friendId)=>{
+                return User.findById(friendId);
+            })
+        );
+        
+        let friendList = [];
+        friends.map(friend=>{
+            const {_id,username,profilepicture} = friend;
+            friendList.push({_id,username,profilepicture})
+        });
+        console.log(friendList);
+        res.status(200).json(friendList);
+    }catch(err){
+        res.status(500).json(err);
+    }
+})
+
 //follow a user
 router.put("/:id/follow", async (req,res)=>{
     if(req.body.userId !== req.params.id){
